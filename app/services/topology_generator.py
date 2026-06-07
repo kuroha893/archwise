@@ -130,6 +130,7 @@ class TopologyGenerator:
     ) -> tuple[str, list[str]]:
         graph_knowledge = graph_knowledge or {}
         composition_recommendation = composition_recommendation or {}
+        # Coverage decides whether Neo4j leads generation or only enriches LLM expectations.
         graph_primary = self._graph_coverage_sufficient(requirement, features, graph_knowledge, extra_capabilities or [])
         capabilities = self._topology_capabilities(requirement, features, graph_knowledge, extra_capabilities or [], graph_primary)
         capabilities.extend(extra_capabilities or [])
@@ -223,6 +224,7 @@ class TopologyGenerator:
         covered_quality_infra = [name for name in expected_quality_infra if name in available_names]
         missing_quality_infra = [name for name in expected_quality_infra if name not in available_names]
 
+        # Business capabilities receive the highest weight because they anchor domain correctness.
         dimensions = {
             "business_capability": self._dimension_score(expected, covered, missing),
             "component": self._dimension_score(expected_components, covered_components, missing_components),
@@ -473,6 +475,7 @@ class TopologyGenerator:
             if canonical_source in nodes and canonical_target in nodes:
                 edges.append(TopologyEdge(canonical_source, canonical_target, label, kind))
 
+        # Build order matters: base entry points, LLM expectations, graph knowledge, then validators.
         self._ensure_base_infrastructure(features, add, notes, graph_primary)
         self._add_llm_capability_nodes(capabilities, add)
         self._add_llm_expected_nodes(features, add)
@@ -1370,6 +1373,7 @@ class TopologyGenerator:
         aggregate_edges: list[TopologyEdge] = []
         consumed: set[int] = set()
 
+        # Overview diagrams replace dense fan-in/fan-out groups with layer aggregate nodes.
         for hub_id, hub in node_map.items():
             grouped_in: dict[str, list[tuple[int, TopologyEdge]]] = {}
             grouped_out: dict[str, list[tuple[int, TopologyEdge]]] = {}

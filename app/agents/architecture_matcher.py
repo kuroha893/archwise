@@ -132,6 +132,7 @@ class ArchitectureMatcherAgent:
         style_scores = style.quality_scores
         adjustment = 0.0
 
+        # These adjustments encode cross-quality conflicts that raw style scores cannot express.
         if qualities.get("realtime", 0) >= 0.8 and style_scores.get("realtime", 0) < 0.6:
             adjustment -= 0.07 if style.id == "microservices" else 0.12
             deductions.append("强实时需求与架构实时能力不匹配")

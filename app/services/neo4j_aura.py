@@ -364,6 +364,7 @@ class Neo4jAuraService:
         WHERE q.name IN $active_qualities
         RETURN collect(DISTINCT component.name) AS components
         """
+        # Combine scenario, explicit capability, quality, and vector matches before fetching edges.
         edge_query = """
         MATCH (a)-[r:DEPENDS_ON|STORES_IN]->(b)
         WHERE a.name IN $components
@@ -587,6 +588,7 @@ class Neo4jAuraService:
 
     @staticmethod
     def _create_vector_indexes(session, dimension: int) -> None:
+        # Fixed index names let reindexing stay idempotent across repeated syncs.
         index_specs = {
             "BusinessCapability": "topology_business_capability_embedding",
             "ArchitectureComponent": "topology_architecture_component_embedding",
@@ -725,6 +727,7 @@ class Neo4jAuraService:
             for store in spec.get("stores", [])
         }
 
+        # Scenario scoped relationships preserve why a capability/component pair was learned.
         for scenario in data.get("scenarios", []):
             tx.run(
                 """
@@ -880,6 +883,7 @@ class Neo4jAuraService:
 
     @staticmethod
     def _merge_topology_patch(tx, scenario_ids: list[str], scenario_name: str, patch: dict[str, Any]) -> None:
+        # Learned patches attach to one or more scenario scopes instead of global edges only.
         for scenario_id in scenario_ids:
             tx.run(
                 """

@@ -201,6 +201,7 @@ class HybridReasoningOrchestrator:
         )
 
         matrix = [self._matrix_row(item) for item in candidates]
+        # Build the UI trace only after every reasoning node has contributed evidence.
         ctx.decision_trace = self._build_decision_trace(
             features=features,
             graph_matches=state["graph_matches"],
@@ -414,6 +415,7 @@ class HybridReasoningOrchestrator:
         graph_knowledge: dict[str, Any],
         llm_capabilities: list[str],
     ) -> TopologyRepairGraphState:
+        # The topology graph keeps coverage scoring separate from LLM patch creation.
         graph = StateGraph(TopologyRepairGraphState)
         graph.add_node("gap_review_agent", self._topology_gap_review_agent)
         graph.add_node("coverage_agent", self._topology_coverage_agent)
@@ -495,6 +497,7 @@ class HybridReasoningOrchestrator:
                 current_graph,
                 extra_capabilities=state["llm_capabilities"],
             )
+            # Trial graph updates the current response; durable writes are deferred to normalization.
             if ctx.topology_fast_mode:
                 neo4j_result = {
                     "ok": False,
@@ -634,6 +637,7 @@ class HybridReasoningOrchestrator:
             for edge in trial_patch.get("edges", [])
             if isinstance(edge, dict) and edge.get("source") and edge.get("target")
         }
+        # Reject broad patches that do not address the exact missing coverage items.
         if not (
             patch_capability_names & set(coverage.get("missing_capabilities", []))
             or patch_names & set(coverage.get("missing_components", []))
@@ -772,6 +776,7 @@ class HybridReasoningOrchestrator:
             return
 
         ctx.trace.append(f"知识库进化后台任务已启动：{label} 将执行 embedding 规范化和 Neo4j 写入")
+        # Background normalization keeps the SSE response responsive while Neo4j evolves.
         task = asyncio.create_task(
             self._background_normalize_and_merge_topology_patch(
                 requirement=ctx.requirement,
@@ -971,6 +976,7 @@ class HybridReasoningOrchestrator:
             for candidate in llm_candidates
         }
         local_map = {candidate.style_id: candidate for candidate in local_candidates}
+        # Local rule preferences can add omitted styles, then normal ranking still decides order.
         for style_id in decision.preferred_style_ids:
             if style_id in merged or style_id not in local_map:
                 continue

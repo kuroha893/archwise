@@ -714,6 +714,7 @@ class LLMClient:
         if len(candidates) < 3:
             raise ValueError("候选架构少于 3 个或 style_id 不在知识库中")
         candidates.sort(key=lambda item: item.score, reverse=True)
+        # The first candidate is normalized as the final recommendation consumed by the UI.
         candidates[0].recommendation_role = "核心推荐"
         composition = data.get("composition_recommendation", {})
         if not isinstance(composition, dict):
@@ -819,6 +820,7 @@ class LLMClient:
         max_tokens: int,
         request_timeout: float | None | object = _DEFAULT_TIMEOUT,
     ) -> BaseModel:
+        # LangChain owns prompt composition; the adapter still calls the same OpenAI-style endpoint.
         prompt = ChatPromptTemplate.from_messages(
             [
                 ("system", "{system_message}"),

@@ -255,6 +255,7 @@ async function consumeStream(body, handler) {
   if (buffer.trim()) await handler(parseSse(buffer));
 }
 function parseSse(raw) {
+  // The backend emits standard SSE blocks with one event line and one JSON data payload.
   const lines = raw.split("\n");
   const event = lines.find((l) => l.startsWith("event:"))?.slice(6).trim() || "message";
   const data = lines.filter((l) => l.startsWith("data:")).map((l) => l.slice(5).trim()).join("\n");
@@ -710,6 +711,7 @@ async function drawTopology(source) {
   if (!stage) return;
   topoState.source = source; topoState.svg = "";
   topoState.scale = 1; topoState.panX = 0; topoState.panY = 0;
+  // Rendered SVG is cached so the modal can reuse the exact diagram without a second Mermaid pass.
   if (!window.mermaid) { stage.innerHTML = `<div class="topo-loading"><strong>Mermaid 未加载</strong><span>请检查网络后刷新页面。</span></div>`; return; }
   try {
     const { svg } = await mermaid.render(`topo-${Date.now()}`, source);
@@ -1091,6 +1093,7 @@ function edgeLabel(e) {
 function renderVisNetwork(container, graph, legendEl) {
   if (!window.vis) { container.innerHTML = `<div class="topo-loading"><strong>图库未加载</strong><span>vis-network 未加载，请检查网络后刷新。</span></div>`; return; }
   const typesPresent = new Set();
+  // Node type metadata drives both the graph styling and the legend.
   const nodes = graph.nodes.map((n) => {
     typesPresent.add(n.type);
     const st = NODE_TYPE_STYLE[n.type] || { color: "#a1a1aa", size: 14 };

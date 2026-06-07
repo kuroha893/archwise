@@ -8,6 +8,7 @@ from app.services.recommendation_service import RecommendationService
 
 knowledge_service_url = os.getenv("KNOWLEDGE_SERVICE_URL", "").strip()
 
+# This flag selects the service boundary used by the reasoning app.
 if knowledge_service_url:
     knowledge_service = KnowledgeServiceClient(knowledge_service_url)
     recommendation_service = RecommendationService(knowledge_service=knowledge_service)

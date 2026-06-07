@@ -61,6 +61,7 @@ class KnowledgeNormalizer:
                 temporary[label].add(node["name"])
             semantic_report.append(decision)
 
+        # The trial patch powers the current diagram; write_patch excludes temporary nodes.
         trial_patch = self._rewrite_patch(patch, decisions, temporary, include_temporary=True)
         write_patch = self._rewrite_patch(patch, decisions, temporary, include_temporary=False)
         return {
@@ -120,6 +121,7 @@ class KnowledgeNormalizer:
                 record_index.append(record)
                 texts.append(record["text"])
         try:
+            # Embed candidate and existing nodes together to keep similarity scores comparable.
             embeddings = await self.embeddings.aembed_documents(texts)
         except RuntimeError:
             return False
@@ -162,6 +164,7 @@ class KnowledgeNormalizer:
                 matches,
             )
 
+        # Only the uncertain band asks the LLM to adjudicate semantic equivalence.
         adjudication = await self.llm_client.adjudicate_semantic_merge(requirement, node, matches)
         if not adjudication:
             return self._report(

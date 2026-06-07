@@ -295,6 +295,7 @@ class KnowledgeGraphService:
 
     @staticmethod
     def _topology_query_text(requirement: str, features: ExtractedFeatures) -> str:
+        # Keep the vector query aligned with the same fields used for topology generation.
         return "\n".join(
             [
                 f"需求: {requirement}",
@@ -326,6 +327,7 @@ class KnowledgeGraphService:
         graph_knowledge: dict[str, object],
         coverage: dict[str, object],
     ) -> dict[str, list[dict[str, object]]]:
+        # Include retrieved graph knowledge as temporary context for semantic normalization.
         records = self.neo4j.fetch_topology_node_records() if self.neo4j.configured else {
             "BusinessCapability": [],
             "ArchitectureComponent": [],

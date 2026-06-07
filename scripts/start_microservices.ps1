@@ -38,6 +38,7 @@ function Start-ArchWiseService {
     $commands = @()
     $commands += "[Environment]::SetEnvironmentVariable('PYTHONPATH', $(Quote-PowerShellValue $Root), 'Process')"
     $commands += "[Environment]::SetEnvironmentVariable('ARCHWISE_SERVICE_NAME', $(Quote-PowerShellValue $Name), 'Process')"
+    # Each service receives only the environment values it needs for its boundary.
     foreach ($key in $Environment.Keys) {
         $commands += "[Environment]::SetEnvironmentVariable($(Quote-PowerShellValue $key), $(Quote-PowerShellValue ([string]$Environment[$key])), 'Process')"
     }
